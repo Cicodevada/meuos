@@ -1,0 +1,45 @@
+# MeuOS
+
+MeuOS é um mini ambiente de desktop feito em Electron com webapps. Futuramente, será compatível com Linux.
+
+## Funcionalidades
+
+- Ambiente de desktop leve e rápido
+- Suporte para webapps
+- Interface amigável
+
+## Requisitos
+
+- Node.js
+- Electron
+
+## Instalação
+
+1. Clone o repositório:
+  ```bash
+  git clone https://github.com/cicodevada/meuos.git
+  ```
+2. Navegue até o diretório do projeto:
+  ```bash
+  cd meuos
+  ```
+3. Instale as dependências:
+  ```bash
+  npm install
+  ```
+4. Inicie a aplicação:
+  ```bash
+  npm start
+  ```
+
+## Contribuição
+
+1. Faça um fork do projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/nova-feature`)
+3. Commit suas mudanças (`git commit -m 'Adiciona nova feature'`)
+4. Faça um push para a branch (`git push origin feature/nova-feature`)
+5. Abra um Pull Request
+
+## Licença
+
+Este projeto está licenciado sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
