@@ -1,0 +1,401 @@
+<html>
+
+<head>
+    <title>
+        Web Page
+    </title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/winbox@0.2.82/dist/winbox.bundle.min.js"></script>
+    <style>
+        *:not(#window-container) {
+            z-index: 999;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-image: url('https://i.imgur.com/OJxKuPc.png');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .taskbar {
+            z-index: 2;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+        }
+
+        .taskbar .app img {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #fff;
+            margin-left: 10px;
+        }
+
+        .start-button {
+            background-color: #0057d8;
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .start-button i {
+            color: #fff;
+            font-size: 18px;
+        }
+
+        .app-menu {
+            position: absolute;
+            bottom: 50px;
+            left: 10px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+
+        .search-bar input {
+            border: none;
+            outline: none;
+            width: 100%;
+            padding: 5px;
+        }
+
+        .search-bar i {
+            color: #333;
+            font-size: 18px;
+            margin-right: 5px;
+        }
+
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .app-grid .app {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* Centraliza horizontalmente */
+            justify-content: flex-start;
+            /* Alinha o conteúdo ao topo */
+            text-align: center;
+            cursor: pointer;
+            width: 64px;
+            height: 64px;
+            /* Define uma altura fixa */
+            box-sizing: border-box;
+            margin: 2px;
+        }
+
+        .app-grid .app img {
+            width: 40px;
+            margin-bottom: 5px;
+            border-radius: 50%;
+            background-color: white;
+        }
+
+        .app-grid .app span {
+            font-size: 12px;
+            word-break: break-word;
+            white-space: normal;
+            width: 100%;
+            /*overflow: hidden;  Descomente se quiser truncar o texto*/
+            /*text-overflow: ellipsis;*/
+        }
+
+
+        .user-section {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .user-section img {
+            border-radius: 8px;
+            width: 24px;
+            height: 24px;
+        }
+
+        .user-section .power-button {
+            border: none;
+            border-radius: 8px;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            background-color: transparent;
+        }
+
+        .user-section .power-button i {
+            color: #ff4d4d;
+            font-size: 16px;
+        }
+
+        .notification-area,
+        .time-area {
+            position: fixed;
+            bottom: 5px;
+            right: 10px;
+            width: 210px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .notification-area {
+            display: none;
+        }
+
+        .notification-area .notification {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .notification-area .notification span {
+            font-size: 12px;
+        }
+
+        .notification-area .icons {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .notification-area .icons i {
+            font-size: 18px;
+            margin: 0 5px;
+            cursor: pointer;
+        }
+
+        .time-area .time {
+            font-size: 12px;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        #window-container {
+            position: absolute;
+            width: 100%;
+            height: calc(100% - 40px);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="window-container"></div>
+    <div class="taskbar">
+        <button class="start-button">
+            <i class="fas fa-chevron-up">
+            </i>
+        </button>
+    </div>
+    <div class="app-menu">
+        <div class="search-bar">
+            <i class="fas fa-search">
+            </i>
+            <input placeholder="Search apps or execute any action..." type="text" />
+        </div>
+        <div id="app-grid" class="app-grid">
+        </div>
+        <div class="user-section">
+            <img alt="User Photo" height="30" src="https://storage.googleapis.com/a1aa/image/4iLXvnOKJZI6Fp0NzOJdZbUBLkA4eOrfzC1WyHd9vlNkDh0TA.jpg" width="30" />
+            <button class="power-button">
+                <i class="fas fa-power-off">
+                </i>
+            </button>
+        </div>
+    </div>
+    <div class="time-area" style="bottom: 5px;">
+        <div class="time">
+            <span>
+                segunda-feira, 25 de nov. de 2024 08:08
+            </span>
+        </div>
+    </div>
+    <div class="notification-area" style="bottom: 50px;">
+        <div class="notification">
+            <span>
+                0 new notifications
+            </span>
+        </div>
+        <div class="icons">
+            <i class="fas fa-power-off">
+            </i>
+            <i class="fas fa-plane">
+            </i>
+            <i class="fas fa-volume-up">
+            </i>
+            <i class="fas fa-cog">
+            </i>
+        </div>
+    </div>
+</body>
+<script>
+    $(document).ready(function () {
+        const openedWindows = {}; // Rastreia janelas abertas para cada app com limite
+        let windowCounter = 0;    // Contador para gerar IDs únicos
+
+        // Botão iniciar
+        $('.start-button').click(function () {
+            $('.app-menu').fadeToggle();
+            $('.start-button i').toggleClass('fa-chevron-down fa-chevron-up');
+        });
+
+        // Barra de notificações
+        $('.time-area').click(function () {
+            $('.notification-area').fadeToggle();
+        });
+
+        // Atualiza o horário
+        function updateTime() {
+            const date = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+            const formattedDate = date.toLocaleDateString('pt-BR', options);
+            $('.time').text(formattedDate);
+        }
+        updateTime();
+        setInterval(updateTime, 10000);
+
+        // Apps disponíveis
+        const apps = [
+            { name: 'Chrome', icon: 'https://i.imgur.com/qAN8nRV.png', link: 'apps/browser/index.html' },
+            { name: 'VSCode', icon: 'https://i.imgur.com/yRtNlRF.png', link: 'https://vscode.dev' },
+            { name: 'Photopea', icon: 'https://apkafe.com/wp-content/uploads/photopea-icon-filled-256.png', link: 'https://www.photopea.com/' },
+            { name: 'Discord', icon: 'https://cdn.icon-icons.com/icons2/2108/PNG/512/discord_icon_130958.png', link: 'https://discord.com/channels/@me', limit: 1 },
+            { name: 'Paint', icon: 'https://img.icons8.com/plasticine/512/microsoft-paint.png', link: 'https://jspaint.app/' },
+            { name: 'Notion', icon: 'https://www.notion.so/images/favicon.ico', link: 'apps/explorer/index.html' },
+        ];
+
+        // Adiciona os apps ao grid
+        apps.forEach(app => {
+            $('#app-grid').append(`
+                <div class="app" data-name="${app.name}">
+                    <img src="${app.icon}" alt="${app.name} Icon" />
+                    <span>${app.name}</span>
+                </div>
+            `);
+        });
+        // Gerenciar abertura de apps
+        $('#app-grid').on('click', '.app', function () {
+            const appName = $(this).data('name');
+            const app = apps.find(a => a.name === appName);
+
+            // Verifica se o app já está aberto e tem limite
+            if (openedWindows[app.name] && app.limit) {
+                const existingWindow = openedWindows[app.name];
+                existingWindow.restore();
+                existingWindow.focus();
+                return;
+            }
+
+            // Gera um ID único para a janela
+            const winId = `win-${windowCounter++}`;
+            // Se app.link for uma URL, carrega em um webview se não carrega o HTML
+
+
+    if (app.link.startsWith('http')) {
+        // Se for uma URL, cria o iframe
+        var html = `<webview src="${app.link}" style="width: 100%; height: 100%;"></webview>`;
+    } else {
+        //
+        // Se for um arquivo local, faz a requisição com ajax e pega o codigo HTML
+        $.ajax({
+            url: app.link,
+            success: function (data) {
+                html = data;
+            },
+            async: false
+        });
+    }
+
+
+            // Cria uma nova janela com WinBox
+            const win = new WinBox(app.name, {
+                id: winId, // Associa o ID único à janela
+                root: document.getElementById('window-container'),
+                html: html,
+                onclose: function () {
+                    // Remove do rastreamento ao fechar
+                    if (app.limit) {
+                        delete openedWindows[app.name];
+                    }
+                    $(`.taskbar .app[data-win-id="${winId}"]`).remove(); // Remove da barra de tarefas
+                }
+            });
+
+            // Se o app tem limite, armazena a referência
+            if (app.limit) {
+                openedWindows[app.name] = win;
+            }
+
+            // Adiciona à barra de tarefas com o ID único
+            $('.taskbar').append(`
+                <div class="app" data-win-id="${winId}">
+                    <img src="${app.icon}" alt="${app.name} Icon" />
+                </div>
+            `);
+
+            // Reabre a janela ao clicar no ícone da taskbar
+            $(`.taskbar .app[data-win-id="${winId}"]`).off('click').on('click', function () {
+                // Verifica se ela está minimizada
+                win.restore();
+                win.focus();
+            });
+        });
+    });
+</script>
+
+
+
+
+</html>
+
+<style>
+    /* Estilo básico para a janela */
+    .winbox.max {
+        height: calc(100% - 40px) !important;
+    }
+
+    .winbox.min {
+        z-index: 999999;
+    }
+</style>

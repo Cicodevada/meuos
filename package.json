@@ -1,13 +1,14 @@
 {
-  "name": "electron-x11-app",
+  "name": "electron",
   "version": "1.0.0",
-  "description": "Integrating an external app in Electron with X11",
-  "main": "main.js",
+  "main": "index.js",
   "scripts": {
     "start": "electron ."
   },
-  "dependencies": {
-    "electron": "^23.0.0"
-  },
-  "devDependencies": {}
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "electron": "^33.2.0"
+  }
 }

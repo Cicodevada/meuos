@@ -1,0 +1,206 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<div id="tabs">
+  <button style="float:right" id="newtab">+</button>
+</div>
+<div id="toolbar">
+  <button id="back">Back</button>
+  <button id="forward">Forward</button>
+  <button id="reload">Reload</button>
+  <button id="home">Home</button>
+  <input id="url" type="text" onkeydown="if (event.keyCode == 13) loadURL(this.value)">
+  <button id="go" onclick="loadURL(document.getElementById('url').value)">Go</button>
+</div>
+<div id="content"></div>
+
+<script>
+    let tabs = 0;
+    const homeURL = 'https://www.google.com'; // Defina a URL inicial
+
+    // Função para criar nova aba
+    function createNewTab(url = homeURL) {
+        tabs++;
+        
+        // Adiciona a nova aba ao topo antes do botão de nova aba
+        const tabId = 'tab' + tabs + '';
+        const tabButton = $('<button></button>').text('Tab ' + tabs)
+            .attr('id', tabId)
+            .click(function () {
+                switchTab(tabId);
+            });
+
+        $('#newtab').before(tabButton);
+
+        // Cria um WebView para a nova aba
+        // Impede a criação de novas janelas no Electron
+        const webview = $('<webview></webview>')
+            .attr({
+                'src': url,
+                'id': 'content' + tabs,
+                'preload': '../../preload.js'
+            })
+            .css('display', 'none')
+
+        $('#content').append(webview);
+
+        // Vai para a nova aba
+        switchTab(tabId);
+    }
+
+    
+    
+    // Função para alternar entre as abas
+    function switchTab(tabId) {
+        // Esconde todos os conteúdos de abas
+        $('#content webview').hide();
+        
+        // Exibe o conteúdo da aba selecionada
+        $('#content' + tabId.replace('tab', '').replace('', '') + '').show();
+
+        // Troca o URL no input
+        const activeWebview = $('#content webview:visible');
+        $('#url').val(activeWebview[0].src);
+        
+    }
+
+    // Função para voltar na aba
+    function back() {
+        const activeWebview = $('#content webview:visible');
+        if (activeWebview.length) {
+            activeWebview[0].back();
+        }
+    }
+
+    // Função para avançar na aba
+    function forward() {
+        const activeWebview = $('#content webview:visible');
+        if (activeWebview.length) {
+            activeWebview[0].forward();
+        }
+    }
+
+    // Função para recarregar a aba
+    function reload() {
+        const activeWebview = $('#content webview:visible');
+        if (activeWebview.length) {
+            activeWebview[0].reload();
+        }
+    }
+
+    // Função para ir para a página inicial
+    function home() {
+        loadURL(homeURL);
+    }
+
+    // Função para carregar URL no WebView ativo
+    function loadURL(url) {
+        const activeWebview = $('#content webview:visible');
+        if (activeWebview.length) {
+            activeWebview[0].src = url;
+        }
+        // Atualiza a URL no input
+        $('#url').val(url);
+        // Pega o titulo da página
+        activeWebview[0].addEventListener('page-title-updated', function (e) {
+            const title = e.title;
+            const tabId = activeWebview[0].id.replace('content', 'tab');
+            $('#' + tabId).text(title);
+        });
+    }
+
+    // Listener para o botão de nova aba
+    $('#newtab').click(function() {
+        createNewTab();
+    });
+
+    // Listener para os botões de navegação
+    $('#back').click(back);
+    $('#forward').click(forward);
+    $('#reload').click(reload);
+    $('#home').click(home);
+    createNewTab()
+</script>
+
+<style>
+    /* Estilos gerais */
+body, html {
+    margin: 0;
+    padding: 0;
+    overflow: hidden; /* Remove scroll da janela */
+    height: 100%;
+    font-family: Arial, sans-serif;
+}
+
+/* Container principal do navegador */
+#tabs {
+    display: flex;
+    align-items: center;
+    padding: 5px;
+    background-color: #f0f0f0;
+    border-bottom: 1px solid #ccc;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+#toolbar {
+    display: flex;
+    align-items: center;
+    padding: 5px;
+    background-color: #fafafa;
+    border-bottom: 1px solid #ddd;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Botões do navegador */
+#toolbar button, 
+#tabs button {
+    padding: 5px 10px;
+    margin: 0 5px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    background-color: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+#toolbar button:hover,
+#tabs button:hover {
+    background-color: #f7f7f7;
+    border-color: #bbb;
+}
+
+/* Botão de nova aba */
+#newtab {
+    font-weight: bold;
+    font-size: 16px;
+}
+
+/* Input de URL */
+#url {
+    flex: 1;
+    padding: 5px 10px;
+    margin: 0 5px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-size: 14px;
+}
+
+/* Área de conteúdo do navegador */
+#content {
+    height: calc(100% - 78px); /* Altura total menos os toolbars */
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    background-color: #fff;
+    position: relative;
+}
+
+/* Webview configurado */
+#content webview {
+    flex: 1;
+    height: 100%;
+    width: 100%;
+    border: none; /* Remove bordas do webview */
+    overflow: auto; /* Permite scroll dentro do webview */
+}
+
+</style>

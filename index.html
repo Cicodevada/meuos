@@ -1,15 +1,633 @@
-<!DOCTYPE html>
-<html lang="en">
+<html>
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Electron X11 App</title>
+    <title>
+        Web Page
+    </title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/winbox@0.2.82/dist/winbox.bundle.min.js"></script>
+    <style>
+        *:not(#window-container) {
+            z-index: 999;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-image: url('https://i.imgur.com/OJxKuPc.png');
+            background-size: cover;
+            background-position: center;
+            overflow:hidden;
+        }
+
+        .taskbar {
+            z-index: 2;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+        }
+
+        .taskbar .app img {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #fff;
+            margin-left: 10px;
+        }
+
+        .start-button {
+            background-color: #0057d8;
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .start-button i {
+            color: #fff;
+            font-size: 18px;
+        }
+
+        .app-menu {
+            position: absolute;
+            bottom: 50px;
+            left: 10px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+
+        .search-bar input {
+            border: none;
+            outline: none;
+            width: 100%;
+            padding: 5px;
+        }
+
+        .search-bar i {
+            color: #333;
+            font-size: 18px;
+            margin-right: 5px;
+        }
+
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .app-grid .app {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* Centraliza horizontalmente */
+            justify-content: flex-start;
+            /* Alinha o conteúdo ao topo */
+            text-align: center;
+            cursor: pointer;
+            width: 64px;
+            height: 64px;
+            /* Define uma altura fixa */
+            box-sizing: border-box;
+            margin: 2px;
+        }
+
+        .app-grid .app img {
+            width: 40px;
+            margin-bottom: 5px;
+            border-radius: 50%;
+            background-color: white;
+        }
+
+        .app-grid .app span {
+            font-size: 12px;
+            word-break: break-word;
+            white-space: normal;
+            width: 100%;
+            /*overflow: hidden;  Descomente se quiser truncar o texto*/
+            /*text-overflow: ellipsis;*/
+        }
+
+
+        .user-section {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .user-section img {
+            border-radius: 8px;
+            width: 24px;
+            height: 24px;
+        }
+
+        .user-section .power-button {
+            border: none;
+            border-radius: 8px;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            background-color: transparent;
+        }
+
+        .user-section .power-button i {
+            color: #ff4d4d;
+            font-size: 16px;
+        }
+
+        .notification-area,
+        .time-area {
+            position: fixed;
+            bottom: 5px;
+            right: 10px;
+            width: 210px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .notification-area {
+            display: none;
+        }
+
+        .notification-area .notification {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .notification-area .notification span {
+            font-size: 12px;
+        }
+
+        .notification-area .icons {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .notification-area .icons i {
+            font-size: 18px;
+            margin: 0 5px;
+            cursor: pointer;
+        }
+
+        .time-area .time {
+            font-size: 12px;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        #window-container {
+            position: absolute;
+            width: 100%;
+            height: calc(100% - 40px);
+            top: 0;
+            left: 0;
+            pointer-events: none;
+        }
+
+        .custom-window {
+            position: absolute;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            resize: both;
+            overflow: auto;
+            pointer-events: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .window-header {
+            background: #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            cursor: move;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        }
+
+        .window-header .window-title {
+            flex-grow: 1;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .window-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .window-controls button {
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .window-content {
+            flex-grow: 1;
+            overflow: auto;
+        }
+
+    </style>
 </head>
+
 <body>
-  <h1>Electron X11 App</h1>
-  <p>Esta janela contém um programa nativo (como o gedit) integrado via X11.</p>
-  <div id="external-window-container">
-    <!-- O conteúdo da janela externa será embutido aqui via X11 -->
-  </div>
+    <div id="window-container"></div>
+    <div class="taskbar">
+        <button class="start-button">
+            <i class="fas fa-chevron-up">
+            </i>
+        </button>
+    </div>
+    <div class="app-menu">
+        <div class="search-bar">
+            <i class="fas fa-search">
+            </i>
+            <input placeholder="Search apps or execute any action..." type="text" />
+        </div>
+        <div id="app-grid" class="app-grid">
+        </div>
+        <div class="user-section">
+            <img alt="User Photo" height="30" src="https://storage.googleapis.com/a1aa/image/4iLXvnOKJZI6Fp0NzOJdZbUBLkA4eOrfzC1WyHd9vlNkDh0TA.jpg" width="30" />
+            <button class="power-button">
+                <i class="fas fa-power-off">
+                </i>
+            </button>
+        </div>
+    </div>
+    <div class="time-area" style="bottom: 5px;">
+        <div class="time">
+            <span>
+                segunda-feira, 25 de nov. de 2024 08:08
+            </span>
+        </div>
+    </div>
+    <div class="notification-area" style="bottom: 50px;">
+        <div class="notification">
+            <span>
+                0 new notifications
+            </span>
+        </div>
+        <div class="icons">
+            <i class="fas fa-power-off">
+            </i>
+            <i class="fas fa-plane">
+            </i>
+            <i class="fas fa-volume-up">
+            </i>
+            <i class="fas fa-cog">
+            </i>
+        </div>
+    </div>
 </body>
+<script>
+    let winmanager;
+    const defaultWidth = '40%';
+    const defaultHeight = '60%';
+    class WindowManager {
+        constructor() {
+            this.windowContainer = document.getElementById('window-container');
+            this.taskbar = document.querySelector('.taskbar');
+            this.openedWindows = {};
+            this.windowCounter = 0;
+
+            this.initializeEventListeners();
+            this.loadApps();
+            this.updateTime();
+            setInterval(() => this.updateTime(), 10000);
+        }
+
+        initializeEventListeners() {
+            // Start button toggle
+            document.querySelector('.start-button').addEventListener('click', () => {
+                const appMenu = document.querySelector('.app-menu');
+                const startIcon = document.querySelector('.start-button i');
+                appMenu.style.display = appMenu.style.display === 'block' ? 'none' : 'block';
+                startIcon.classList.toggle('fa-chevron-down');
+                startIcon.classList.toggle('fa-chevron-up');
+            });
+
+            // Time area notification toggle
+            document.querySelector('.time-area').addEventListener('click', () => {
+                const notificationArea = document.querySelector('.notification-area');
+                notificationArea.style.display = notificationArea.style.display === 'block' ? 'none' : 'block';
+            });
+        }
+
+        updateTime() {
+            const date = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+            const formattedDate = date.toLocaleDateString('pt-BR', options);
+            document.querySelector('.time').textContent = formattedDate;
+        }
+
+        loadApps() {
+            const apps = [
+                { name: 'Navegador', icon: 'https://i.imgur.com/qAN8nRV.png', link: 'apps/browser/index.html' },
+                { name: 'VSCode', icon: 'https://i.imgur.com/yRtNlRF.png', link: 'https://vscode.dev' },
+                { name: 'Photopea', icon: 'https://apkafe.com/wp-content/uploads/photopea-icon-filled-256.png', link: 'https://www.photopea.com/' },
+                { name: 'Discord', icon: 'https://cdn.icon-icons.com/icons2/2108/PNG/512/discord_icon_130958.png', link: 'https://discord.com/channels/@me', limit: 1 },
+                { name: 'Paint', icon: 'https://img.icons8.com/plasticine/512/microsoft-paint.png', link: 'https://jspaint.app/' },
+                { name: 'Notion', icon: 'https://www.notion.so/images/favicon.ico', link: 'https://google.com' },
+            ];
+
+            const appGrid = document.getElementById('app-grid');
+            apps.forEach(app => {
+                const appElement = document.createElement('div');
+                appElement.classList.add('app');
+                appElement.dataset.name = app.name;
+                
+                const appIcon = document.createElement('img');
+                appIcon.src = app.icon;
+                appIcon.alt = `${app.name} Icon`;
+                
+                const appName = document.createElement('span');
+                appName.textContent = app.name;
+                
+                appElement.appendChild(appIcon);
+                appElement.appendChild(appName);
+                
+                appElement.addEventListener('click', () => this.openApp(app));
+                appGrid.appendChild(appElement);
+            });
+        }
+        
+
+        createWindow(app) {
+            // Coloca o ID do app no nome da janela + o contador
+            const windowId = `${app.name}-${this.windowCounter++}`;
+            
+            // Create window container
+            const windowElement = document.createElement('div');
+            windowElement.classList.add('custom-window');
+            windowElement.id = windowId;
+            windowElement.style.width = defaultWidth;
+            windowElement.style.height = defaultHeight;
+            windowElement.style.top = `${50 + Math.random() * 100}px`;
+            windowElement.style.left = `${50 + Math.random() * 100}px`;
+
+            // Create window header
+            const headerElement = document.createElement('div');
+            headerElement.classList.add('window-header');
+            
+            const titleElement = document.createElement('div');
+            titleElement.classList.add('window-title');
+            titleElement.textContent = app.name;
+
+            const controlsElement = document.createElement('div');
+            controlsElement.classList.add('window-controls');
+
+            const minimizeButton = document.createElement('button');
+            minimizeButton.innerHTML = '<i class="fas fa-window-minimize"></i>';
+            minimizeButton.addEventListener('click', () => this.minimizeWindow(windowElement));
+
+            const maximizeButton = document.createElement('button');
+            maximizeButton.innerHTML = '<i class="fas fa-window-maximize"></i>';
+            maximizeButton.addEventListener('click', () => this.maximizeWindow(windowElement));
+
+            const closeButton = document.createElement('button');
+            closeButton.innerHTML = '<i class="fas fa-times"></i>';
+            closeButton.addEventListener('click', () => this.closeWindow(windowElement, app));
+
+            controlsElement.appendChild(minimizeButton);
+            controlsElement.appendChild(maximizeButton);
+            controlsElement.appendChild(closeButton);
+
+            headerElement.appendChild(titleElement);
+            headerElement.appendChild(controlsElement);
+
+            // Create content area
+            const contentElement = document.createElement('div');
+            contentElement.classList.add('window-content');
+            
+            // Load content based on link type
+            if (app.link.startsWith('http')) {
+                const iframe = document.createElement('webview');
+                iframe.src = app.link;
+                iframe.style.width = '100%';
+                iframe.style.height = '100%';
+                iframe.style.border = 'none';
+                contentElement.appendChild(iframe);
+            } else {
+                // For local files, you might want to use fetch or ajax to load content
+                fetch(app.link)
+                    .then(response => response.text())
+                    .then(html => {
+                        var windowIdnum = windowId.replace('window-', '');
+                        html = html.replace(/APPID/g, windowIdnum);
+                        console.log(html);
+                        $(contentElement).html(html);
+                    });
+            }
+
+            // Make window draggable
+            this.makeDraggable(headerElement, windowElement);
+
+            windowElement.appendChild(headerElement);
+            windowElement.appendChild(contentElement);
+
+            this.windowContainer.appendChild(windowElement);
+
+            // Add to taskbar
+            const taskbarApp = document.createElement('div');
+            taskbarApp.classList.add('app');
+            taskbarApp.dataset.windowId = windowId;
+
+            const taskbarIcon = document.createElement('img');
+            taskbarIcon.src = app.icon;
+            taskbarIcon.alt = `${app.name} Icon`;
+
+            taskbarApp.appendChild(taskbarIcon);
+            taskbarApp.addEventListener('click', () => this.toggleWindow(windowElement));
+
+            this.taskbar.appendChild(taskbarApp);
+
+            return windowElement;
+        }
+
+        openApp(app) {
+            // Check if app has a limit and is already open
+            if (app.limit && this.openedWindows[app.name]) {
+                const existingWindow = this.openedWindows[app.name];
+                this.bringToFront(existingWindow);
+                return;
+            }
+
+            const newWindow = this.createWindow(app);
+            
+            if (app.limit) {
+                this.openedWindows[app.name] = newWindow;
+            }
+        }
+
+        bringToFront(windowElement) {
+            // Bring window to front by adjusting z-index
+            const windows = document.querySelectorAll('.custom-window');
+            windows.forEach(win => win.style.zIndex = '1');
+            windowElement.style.zIndex = '10';
+        }
+
+        makeDraggable(headerElement, windowElement) {
+            let isDragging = false;
+            let startX, startY, initialLeft, initialTop;
+
+            headerElement.addEventListener('mousedown', startDrag);
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', stopDrag);
+
+            function startDrag(e) {
+                isDragging = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                initialLeft = windowElement.offsetLeft;
+                initialTop = windowElement.offsetTop;
+                
+                // Bring window to front
+                const windows = document.querySelectorAll('.custom-window');
+                windows.forEach(win => win.style.zIndex = '1');
+                windowElement.style.zIndex = '10';
+            }
+
+            function drag(e) {
+                if (!isDragging) return;
+
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+
+                windowElement.style.left = `${initialLeft + dx}px`;
+                windowElement.style.top = `${initialTop + dy}px`;
+            }
+
+            function stopDrag() {
+                isDragging = false;
+            }
+        }
+        
+        minimizeWindow(windowElement) {
+            windowElement.style.display = 'none';
+        }
+
+        maximizeWindow(windowElement) {
+            const isMaximized = windowElement.classList.toggle('maximized');
+            if (isMaximized) {
+                windowElement.style.width = '100%';
+                windowElement.style.height = '100%';
+                windowElement.style.top = '0';
+                windowElement.style.left = '0';
+            } else {
+                windowElement.style.width = defaultWidth;
+                windowElement.style.height = defaultHeight;
+                windowElement.style.top = `${50 + Math.random() * 100}px`;
+                windowElement.style.left = `${50 + Math.random() * 100}px`;
+            }
+        }
+
+        closeWindow(windowElement, app) {
+            // Remove from window container
+            this.windowContainer.removeChild(windowElement);
+
+            // Remove from taskbar
+            const taskbarApp = this.taskbar.querySelector(`.app[data-window-id="${windowElement.id}"]`);
+            if (taskbarApp) {
+                this.taskbar.removeChild(taskbarApp);
+            }
+
+            // Remove from opened windows if applicable
+            if (app.limit && this.openedWindows[app.name]) {
+                delete this.openedWindows[app.name];
+            }
+        }
+
+        toggleWindow(windowElement) {
+            if (windowElement.style.display === 'none') {
+                windowElement.style.display = 'flex';
+                this.bringToFront(windowElement);
+            } else {
+                windowElement.style.display = 'none';
+            }
+        }
+    }
+
+    // Initialize window manager when page loads
+    document.addEventListener('DOMContentLoaded', () => {
+        winmanager = new WindowManager();
+    });
+    
+
+    // Função para abrir as coisas em nova aba!
+    window.api.handle(
+    "open-url",
+    (event, data) =>
+      function (event, data) {
+        // Verifica se tem algum id que comece com "Navegador-"
+        const existingWindow = document.querySelector(`[id^="Navegador-"]`);
+        // Se existir ele traz para frente
+        if (existingWindow) {
+            winmanager.bringToFront(existingWindow);
+        }
+        else {
+          // Se não existir ele cria uma nova janela
+          // Pega o WindowManager que foi criado no page loads
+
+          winmanager.openApp({ name: 'Navegador', icon: 'https://i.imgur.com/qAN8nRV.png', link: 'apps/browser/index.html' });
+        }
+        // Espera a janela ser criada para createNewTab
+        setTimeout(() => {
+          // Pega o id da janela
+          const windowId = document.querySelector(`[id^="Navegador-"]`).id;
+          // Pega o id da aba
+          const tabId = windowId.replace('Navegador-', 'tab');
+          // Cria uma nova aba
+          createNewTab(data, tabId);
+        }, 150);
+      },
+    event
+  );
+
+
+    
+    </script>
+
+
+
+
 </html>
